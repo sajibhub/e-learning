@@ -16,7 +16,7 @@ export const getUserProfile = async (req, res) => {
             });
         }
 
-        const user = await userModel.findById(userId).select('-password status -updatedAt').lean();
+        const user = await userModel.findById(userId).select('-password -updatedAt').lean();
         if (!user) {
             return res.status(404).json({
                 message: "User not found.",

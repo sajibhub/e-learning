@@ -11,7 +11,6 @@ dotenv.config();
 const PublicKeyPath = path.join(process.cwd(), "./security/public_key.pem");
 
 
-
 const middlewareAdmin = async (req, res, next) => {
   try {
     const { accessTokenAdmin, refreshTokenAdmin } = req.cookies;
