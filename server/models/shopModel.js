@@ -10,10 +10,10 @@ const shopSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
-    productImages: [{
+    productImages: {
         type: String,
         default: null,
-    }],
+    },
     productZipFile: {
         type: String,
         default: null,

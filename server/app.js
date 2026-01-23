@@ -72,16 +72,16 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/v1', mainRouter);
 app.use("/images", express.static(path.join(process.cwd(), "images")));
+app.use("/files", express.static(path.join(process.cwd(), "files")));
 
 (async () => {
   try {
-    await GenerateKeyPair();
-    await database();
-    await redisConnection();
-
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT} (PID: ${process.pid})`);
     });
+    await GenerateKeyPair();
+    await database();
+    await redisConnection();
 
   } catch (error) {
     console.log(error);
