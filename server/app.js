@@ -13,7 +13,6 @@ import GenerateKeyPair from "./utils/generateKeyPair.js";
 import { redisConnection } from "./config/redis.js";
 import database from "./config/database.js";
 import mainRouter from "./router/mainRouter.js";
-import adminModel from "./models/adminModel.js";
 
 dotenv.config();
 const PORT = process.env.PORT || 4000;

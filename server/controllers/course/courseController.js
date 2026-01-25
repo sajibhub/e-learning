@@ -1,8 +1,10 @@
 import validator from "validator";
-
+import mongoose from "mongoose";
 
 import CourseCategory from "../../models/courseCategoryModel.js";
 import CourseModel from "../../models/courseModel.js";
+import CourseModuleModel from "../../models/courseModuleModel.js";
+import TransactionModel from "../../models/transactionModel.js";
 
 
 export const createCourse = async (req, res) => {
@@ -286,4 +288,66 @@ export const updateCourse = async (req, res) => {
     }
 };
 
+export const getCourseStructure = async (req, res) => {
+    try {
+        const { userId } = req;
+        const { courseId } = req.params;
 
+        if (!mongoose.isValidObjectId(courseId)) {
+            return res.status(400).json({ message: "Invalid courseId" });
+        }
+
+        const findBuyCourse = await TransactionModel.findOne({
+            userId: new mongoose.Types.ObjectId(userId),
+            productId: new mongoose.Types.ObjectId(courseId),
+            productType: "course",
+            status: "completed"
+        }).select("_id").lean();
+
+        if (!findBuyCourse) {
+            return res.status(400).json({
+                isSubscription: false,
+                message: "You have not purchased this course"
+            });
+        }
+
+        const modules = await CourseModuleModel.aggregate([
+            { $match: { courseId: new mongoose.Types.ObjectId(courseId) } },
+
+            {
+                $lookup: {
+                    from: "videos",
+                    localField: "_id",
+                    foreignField: "moduleId",
+                    as: "videos"
+                }
+            },
+
+            {
+                $project: {
+                    _id: 1,
+                    title: 1,
+                    createdAt: 1,
+                    videos: {
+                        _id: 1,
+                        title: 1,
+                        videoUrl: 1,
+                        createdAt: 1
+                    }
+                }
+            },
+
+            { $sort: { createdAt: 1 } }
+        ]);
+
+        return res.status(200).json({
+            message: "Course structure fetched successfully",
+            totalModules: modules.length,
+            data: modules
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};

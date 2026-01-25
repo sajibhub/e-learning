@@ -42,7 +42,7 @@ export const productCategoryCreate = async (req, res) => {
 
 export const getAllProductCategories = async (req, res) => {
   try {
-    const categories = await ShopCategory.find().sort({ createdAt: -1 }).select('_id name').lean();
+    const categories = await ShopCategory.find().sort({ createdAt: -1 }).select('_id name createdAt').lean();
 
     return res.status(200).json({
       message: "Product categories retrieved successfully.",

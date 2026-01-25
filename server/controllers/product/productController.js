@@ -1,5 +1,6 @@
 import fs from "fs"
 import validator from "validator"
+import mongoose from "mongoose";
 
 import ShopCategory from "../../models/shopCategoryModel.js";
 import ShopModel from "../../models/shopModel.js";
@@ -97,9 +98,8 @@ export const productGet = async (req, res) => {
         const { categoryId, search, page = 1, limit = 10 } = req.query;
 
         const matchStage = {};
-
         if (categoryId) {
-            matchStage.category = categoryId;
+            matchStage.category =  new mongoose.Types.ObjectId(categoryId); ;
         }
 
         if (search) {
@@ -111,15 +111,33 @@ export const productGet = async (req, res) => {
         // Aggregation pipeline
         const products = await ShopModel.aggregate([
             { $match: matchStage },
-            { $sort: { createdAt: -1 } },
             { $skip: skip },
             { $limit: Number(limit) },
+            { $sort: { createdAt: -1 } },
+            {
+                $lookup: {
+                    from: "shopcategories",
+                    localField: "category",
+                    foreignField: "_id",
+                    as: "categoryInfo"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$categoryInfo",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+
             {
                 $project: {
                     productTitle: 1,
                     productDetails: 1,
                     productPrice: 1,
-                    productImages: {$concat:[process.env.BACKEND,'/',"$productImages"]}
+                    category: {
+                        name: "$categoryInfo.name"
+                    },
+                    productImages: { $concat: [process.env.BACKEND, '/', "$productImages"] }
                 }
             }
 
@@ -301,7 +319,7 @@ export const productUpdate = async (req, res) => {
             return res.status(200).json({
                 message: "Product updated successfully.",
                 product: {
-                    _id:updatedProduct._id,
+                    _id: updatedProduct._id,
                     productTitle: updatedProduct.productTitle,
                     productDetails: updatedProduct.productDetails,
                     productPrice: updatedProduct.productPrice,
@@ -338,3 +356,4 @@ export const productDelete = async (req, res) => {
         });
     }
 }
+
