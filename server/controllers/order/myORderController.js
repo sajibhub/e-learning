@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv"
 import TransactionModel from "../../models/transactionModel.js";
+
+dotenv.config()
 
 export const myOrders = async (req, res) => {
   try {
@@ -81,6 +84,39 @@ export const myOrders = async (req, res) => {
               "$product.productPrice"
             ]
           },
+          "product.image": {
+            $cond: [
+              { $eq: ["$productType", "course"] },
+
+              {
+                $cond: [
+                  { $ifNull: ["$product.image", false] },
+                  {
+                    $concat: [
+                      process.env.BACKEND,
+                      "/images/",
+                      "$product.image"
+                    ]
+                  },
+                  null
+                ]
+              },
+
+              {
+                $cond: [
+                  { $ifNull: ["$product.productImages", false] },
+                  {
+                    $concat: [
+                      process.env.BACKEND,
+                      "/",
+                      "$product.productImages"
+                    ]
+                  },
+                  null
+                ]
+              }
+            ]
+          }
         }
       },
 
