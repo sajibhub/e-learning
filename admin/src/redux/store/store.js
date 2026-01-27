@@ -12,6 +12,7 @@ import moduleSlice from "../slices/course/courseModuleSlice.js"
 import videoSlice from "../slices/course/courseVideoSlice.js"
 import productCategorySlice from "../slices/product/productCategorySlice.js"
 import productSlice from "../slices/product/productSlice.js"
+import orderSlice from "../slices/order/orderSlice.js"
 
 
 export const store = configureStore({
@@ -28,7 +29,8 @@ export const store = configureStore({
     modules:moduleSlice,
     video:videoSlice,
     productCategory: productCategorySlice,
-    product: productSlice
+    product: productSlice,
+    order: orderSlice
   },
   devTools: false
 });

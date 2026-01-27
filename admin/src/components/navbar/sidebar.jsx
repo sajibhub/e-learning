@@ -7,6 +7,7 @@ import {
   FaVideo,
   FaBox,
   FaMoneyBillWave,
+  FaTimes,
   FaCog,
   FaSignOutAlt,
   FaShoppingCart
@@ -15,6 +16,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { setLogoutModal, logoutUser } from "../../redux/slices/auth/authSlice.js";
+import { readProfile } from "../../redux/slices/profile/profileSlice.js";
 
 
 const sidebarItems = [
@@ -56,7 +58,7 @@ const sidebarItems = [
   },
   {
     name: "Orders",
-    router: "/orders/1/10",    
+    router: "/orders/1/10",
     baseRouter: "/orders",
     icon: <FaShoppingCart className="w-5 h-5" />,
   },
@@ -70,6 +72,7 @@ const sidebarItems = [
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logoutLoading, isLogoutModalOpen } = useSelector(state => state.auth);
+  const { profile } = useSelector(state => state.profile);
   const navigate = useNavigate();
   const location = useLocation();
   const sidebarRef = useRef();
@@ -88,6 +91,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const handleLogoutClick = () => {
     dispatch(setLogoutModal(true));
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!profile) {
+        try {
+          await dispatch(readProfile()).unwrap();
+        } catch (error) {
+          // if error is 401, navigate to login
+          if (error.response?.status === 401) {
+            navigate("/login");
+          }
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [dispatch, navigate, profile]);
 
   const handleCloseModal = () => dispatch(setLogoutModal(false));
 

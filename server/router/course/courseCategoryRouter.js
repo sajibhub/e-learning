@@ -10,7 +10,7 @@ import middlewareAdmin from '../../middlewares/middlewareAdmin.js';
 const courseCategoryRouter = express.Router();
 
 courseCategoryRouter.post('/course-category/added', middlewareAdmin, createCourseCategory)
-courseCategoryRouter.get('/course-category', middlewareAdmin, getAllCourseCategories)
+courseCategoryRouter.get('/course-category', getAllCourseCategories)
 courseCategoryRouter.delete('/course-category/delete/:id', middlewareAdmin, deleteCourseCategory)
 courseCategoryRouter.put('/course-category/update/:id', middlewareAdmin, updateCourseCategory)
 

@@ -5,13 +5,13 @@ import MercentServiceLogin from "./page/loginPage";
 import Dashboard from "./page/dashboard";
 import NotFound from "./page/NotFound";
 import Layout from "./Layout ";
-import OrderPage from "./page/orderPage.jsx";
 import MerchantSettlementPage from "./page/courses.jsx";
 import ProductManagementPage from "./page/product.jsx";
 import UsersPage from "./page/usersPage.jsx";
 import SettingsPage from "./page/setting.jsx";
 import ModuleManagementPage from "./page/modulePage.jsx";
 import VideoManagementPage from "./page/videoPage.jsx";
+import OrderManagementPage from "./page/orderPage.jsx";
 
 
 // Router setup
@@ -26,7 +26,7 @@ const router = createBrowserRouter([
       { path: "/products/:page/:limit", element: <ProductManagementPage /> },
       { path: "/modules/:page/:limit", element: <ModuleManagementPage /> },
       { path: "/videos/:page/:limit", element: <VideoManagementPage /> },
-      { path: "/orders/:page/:limit", element: <OrderPage /> },
+      { path: "/orders/:page/:limit", element: <OrderManagementPage /> },
       { path: "/settings", element: <SettingsPage /> },
     ],
   },

@@ -19,6 +19,9 @@ export const readProfile = createAsyncThunk(
 
             return { data: response.data.profile, status: response.status };
         } catch (error) {
+            if (error.response.status == 401) {
+                localStorage.setItem("isLogin", "false");
+            }
             return rejectWithValue({
                 message: error.response?.data?.message || error.message,
                 status: error.response?.status || 500,
@@ -48,7 +51,7 @@ export const updateProfile = createAsyncThunk(
                 },
                 withCredentials: true
             });
-            
+
             toast.success(response.data.message);
             return { data: response.data.profile, status: response.status };
         } catch (error) {

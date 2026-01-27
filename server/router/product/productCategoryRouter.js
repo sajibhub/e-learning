@@ -11,7 +11,7 @@ import middlewareAdmin from "../../middlewares/middlewareAdmin.js";
 const productCategoryRouter = express.Router();
 
 productCategoryRouter.post("/product-category/create", middlewareAdmin, productCategoryCreate);
-productCategoryRouter.get("/product-category", middlewareAdmin, getAllProductCategories);
+productCategoryRouter.get("/product-category",  getAllProductCategories);
 productCategoryRouter.put("/product-category/update/:id", middlewareAdmin, updateProductCategory);
 productCategoryRouter.delete("/product-category/delete/:id", middlewareAdmin, deleteProductCategory);
 

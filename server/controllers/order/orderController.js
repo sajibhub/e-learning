@@ -5,10 +5,10 @@ import TransactionModel from "../../models/transactionModel.js";
 
 export const orderProduct = async (req, res) => {
     try {
-        const { userId } = req; 
+        const { userId } = req;
         const { trxId, number, productId, productType, paymentMethod, email } = req.body;
 
-       
+
         if (!trxId || !number || !productId || !productType || !paymentMethod) {
             return res.status(400).json({ message: "All fields are required" });
         }
@@ -91,7 +91,7 @@ export const adminUpdateOrder = async (req, res) => {
             });
         }
 
-        if (!["completed", "failed"].includes(status)) {
+        if (!["completed", "failed", "pending"].includes(status)) {
             return res.status(400).json({
                 message: "Status must be completed or failed"
             });
@@ -105,23 +105,23 @@ export const adminUpdateOrder = async (req, res) => {
             });
         }
 
-        // 🔒 prevent re-update
-        if (transaction.status !== "pending") {
+        const updateOrder = await TransactionModel.findByIdAndUpdate(
+            transactionId,
+            { status },
+            { new: true }
+        );
+
+        if (!updateOrder) {
             return res.status(400).json({
-                message: `Transaction already ${transaction.status}`
+                message: "Order update failed",
             });
         }
-
-        // ✅ update ONLY status
-        transaction.status = status;
-        await transaction.save();
-
         return res.status(200).json({
             message: `Transaction marked as ${status}`,
             data: {
-                _id: transaction._id,
-                trxId: transaction.trxId,
-                status: transaction.status
+                _id: updateOrder._id,
+                trxId: updateOrder.trxId,
+                status: updateOrder.status
             }
         });
 
@@ -139,7 +139,7 @@ export const adminGetAllTransactions = async (req, res) => {
         const page = Math.max(parseInt(req.query.page) || 1, 1);
         const limit = Math.max(parseInt(req.query.limit) || 10, 1);
         const skip = (page - 1) * limit;
-        const { type } = req.query;
+        const { type, search } = req.query;
 
         // 🔹 match stage (filter)
         const matchStage = {};
@@ -147,8 +147,32 @@ export const adminGetAllTransactions = async (req, res) => {
             matchStage.productType = type;
         }
 
+        if (search && search.length === 1) {
+            matchStage.trxId = {
+                $regex: search,
+                $options: "i"
+            };
+        }
+
         const transactions = await TransactionModel.aggregate([
             { $match: matchStage },
+            {
+                $addFields: {
+                    statusOrder: {
+                        $switch: {
+                            branches: [
+                                { case: { $eq: ["$status", "pending"] }, then: 1 },
+                                { case: { $eq: ["$status", "completed"] }, then: 2 },
+                                { case: { $eq: ["$status", "failed"] }, then: 3 },
+                            ],
+                            default: 4
+                        }
+                    }
+                }
+            },
+            { $sort: { statusOrder: 1, createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
 
             // 🔹 Populate user
             {
@@ -227,9 +251,7 @@ export const adminGetAllTransactions = async (req, res) => {
                 }
             },
 
-            { $sort: { createdAt: -1 } },
-            { $skip: skip },
-            { $limit: limit }
+
         ]);
 
         // 🔹 total count for pagination
