@@ -6,9 +6,9 @@ const courseSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    videoLink: {
+    image: {
         type: String,
-        default: null,
+        required: true
     },
     courseDetails: {
         type: String,

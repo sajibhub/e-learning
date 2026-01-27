@@ -8,14 +8,23 @@ const MAIN = import.meta.env.VITE_API_URL;
 // Async thunks
 export const createCourse = createAsyncThunk(
   "course/create",
-  async ({ title, link, details, price, category }, { rejectWithValue }) => {
+  async ({ title, details, price, category, courseImage }, { rejectWithValue }) => {
     try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("details", details);
+      formData.append("price", price);
+      formData.append("category", category);
+      if (courseImage) {
+        formData.append("courseImage", courseImage);
+      }
+
       const response = await axios.post(
         `${MAIN}/course/create`,
-        { title, link, details, price, category },
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${await EncryptedToken()}`
           },
           withCredentials: true,
@@ -36,13 +45,12 @@ export const createCourse = createAsyncThunk(
 
 export const getAllCourses = createAsyncThunk(
   "course/getAll",
-  async ({ page = 1, limit = 10, category = "", search = "" }, { rejectWithValue }) => {
+  async ({ page = 1, limit = 10, category = "" }, { rejectWithValue }) => {
     try {
       const params = new URLSearchParams();
       params.append("page", page);
       params.append("limit", limit);
       if (category) params.append("category", category);
-      if (search) params.append("search", search);
 
       const response = await axios.get(`${MAIN}/course/courses?${params.toString()}`, {
         headers: {
@@ -113,14 +121,23 @@ export const deleteCourse = createAsyncThunk(
 
 export const updateCourse = createAsyncThunk(
   "course/update",
-  async ({ id, title, link, details, price, category }, { rejectWithValue }) => {
+  async ({ id, title, details, price, category, courseImage }, { rejectWithValue }) => {
     try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("details", details);
+      formData.append("price", price);
+      formData.append("category", category);
+      if (courseImage) {
+        formData.append("courseImage", courseImage);
+      }
+
       const response = await axios.put(
         `${MAIN}/course/update/${id}`,
-        { title, link, details, price, category },
+        formData,
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${await EncryptedToken()}`
           },
           withCredentials: true,

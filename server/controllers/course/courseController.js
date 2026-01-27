@@ -1,97 +1,124 @@
 import validator from "validator";
 import mongoose from "mongoose";
+import dotenv from "dotenv"
+import fs from "fs/promises"
+
+dotenv.config()
 
 import CourseCategory from "../../models/courseCategoryModel.js";
 import CourseModel from "../../models/courseModel.js";
 import CourseModuleModel from "../../models/courseModuleModel.js";
 import TransactionModel from "../../models/transactionModel.js";
+import ImageUpload from "../../utils/multer.js";
 
+const removeUploadedFile = (file) => {
+    if (!file || !file.path) return; // nothing to delete
+
+    fs.unlink(file.path, (err) => {
+        if (err) {
+            console.error(`Failed to delete file ${file.path}:`, err);
+        } else {
+            console.log(`Deleted file: ${file.path}`);
+        }
+    });
+};
 
 export const createCourse = async (req, res) => {
     try {
-        if (typeof req.body != "object") {
-            return res.status(400).json({
-                message: "Invalid body format."
-            })
-        }
-
-        const { title, link, details, price, category } = req.body;
-
-        if (!title || !price || !category || !link || !details) {
-            return res.status(400).json({
-                message: "All fields are required."
-            })
-        }
-
-        if (title.trim() === "" || details.trim() === "" || link.trim() === "") {
-            return res.status(400).json({
-                message: "Title, details, and link cannot be empty."
-            })
-        }
-
-        if (isNaN(price) || Number(price) < 0) {
-            return res.status(400).json({
-                message: "Price must be a non-negative number."
-            })
-        }
-
-        if (title.length < 3) {
-            return res.status(400).json({
-                message: "Title must be at least 3 characters long."
-            });
-        }
-
-        if (details.length < 10) {
-            return res.status(400).json({
-                message: "Details must be at least 10 characters long."
-            });
-        }
-
-        if (!validator.isURL(link.trim())) {
-            return res.status(400).json({
-                message: "Invalid video link URL."
-            });
-        }
-
-        if (!validator.isMongoId(category)) {
-            return res.status(400).json({
-                message: "Invalid category ID."
-            });
-        }
-
-        const findCategory = await CourseCategory.findById(category).select("_id").lean();
-        if (!findCategory) {
-            return res.status(404).json({
-                message: "Course category not found."
-            });
-        }
-
-        const newCourse = await CourseModel.create({
-            title: title.trim(),
-            videoLink: link.trim(),
-            courseDetails: details.trim(),
-            coursePrice: Number(price),
-            category: findCategory._id,
-        })
-
-        if (!newCourse) {
-            return res.status(500).json({
-                message: "Failed to create course."
-            });
-        }
-
-        return res.status(201).json({
-            message: "Course created successfully.",
-            course: {
-                _id: newCourse._id,
-                title: newCourse.title,
-                videoLink: newCourse.videoLink,
-                courseDetails: newCourse.courseDetails,
-                coursePrice: newCourse.coursePrice,
-                category: newCourse.category,
-                createdAt: newCourse.createdAt,
+        ImageUpload().single("courseImage")(req, res, async (err) => {
+            if (err) {
+                return res.status(400).json({
+                    message: err
+                })
             }
-        });
+
+            const { title, details, price, category } = req.body;
+
+            if (!title || !price || !category || !req.file || !details) {
+                removeUploadedFile(req.file)
+
+                return res.status(400).json({
+                    message: "All fields are required."
+                })
+            }
+
+            if (title.trim() === "" || details.trim() === "" ) {
+                removeUploadedFile(req.file)
+                return res.status(400).json({
+                    message: "Title, details, and link cannot be empty."
+                })
+            }
+
+            if (isNaN(price) || Number(price) < 0) {
+                removeUploadedFile(req.file)
+                return res.status(400).json({
+                    message: "Price must be a non-negative number."
+                })
+            }
+
+            if (title.length < 3) {
+                removeUploadedFile(req.file)
+                return res.status(400).json({
+                    message: "Title must be at least 3 characters long."
+                });
+            }
+
+            if (details.length < 10) {
+                removeUploadedFile(req.file)
+                return res.status(400).json({
+                    message: "Details must be at least 10 characters long."
+                });
+            }
+
+            if (!req.file) {
+                removeUploadedFile(req.file)
+                return res.status(400).json({ success: false, message: "No file provided" });
+            }
+
+            if (!validator.isMongoId(category)) {
+                removeUploadedFile(req.file)
+                return res.status(400).json({
+                    message: "Invalid category ID."
+                });
+            }
+
+            const findCategory = await CourseCategory.findById(category).select("_id").lean();
+            if (!findCategory) {
+                removeUploadedFile(req.file)
+                return res.status(404).json({
+                    message: "Course category not found."
+                });
+            }
+
+            const newCourse = await CourseModel.create({
+                title: title.trim(),
+                image: req.file.filename,
+                courseDetails: details.trim(),
+                coursePrice: Number(price),
+                category: findCategory._id,
+            })
+
+            if (!newCourse) {
+                removeUploadedFile(req.file)
+                return res.status(500).json({
+                    message: "Failed to create course."
+                });
+            }
+
+            return res.status(201).json({
+                message: "Course created successfully.",
+                course: {
+                    _id: newCourse._id,
+                    title: newCourse.title,
+                    image: `${process.env.BACKEND}/images/newCourse.image`,
+                    courseDetails: newCourse.courseDetails,
+                    coursePrice: newCourse.coursePrice,
+                    category: newCourse.category,
+                    createdAt: newCourse.createdAt,
+                }
+            });
+
+        })
 
     } catch (error) {
         return res.status(500).json({
@@ -129,8 +156,13 @@ export const getAllCourses = async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
+        const coursesWithImage = courses.map(course => ({
+            ...course,
+            image: course.image ? `${process.env.BACKEND}/images/${course.image}` : null
+        }));
+
         return res.status(200).json({
-            courses,
+            courses: coursesWithImage,
             currentPage: page,
             totalPages,
         });
@@ -162,8 +194,12 @@ export const getCourseById = async (req, res) => {
         }
 
         return res.status(200).json({
-            course,
+            course: {
+                ...course,
+                image: course.image ? `${process.env.BACKEND}/images/${course.image}` : null
+            }
         });
+
     } catch (error) {
         return res.status(500).json({
             message: "An error occurred while processing your request.",

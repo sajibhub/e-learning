@@ -80,7 +80,7 @@ app.use("/files", express.static(path.join(process.cwd(), "files")));
     });
     await GenerateKeyPair();
     await database();
-    await redisConnection();
+    // await redisConnection();
 
   } catch (error) {
     console.log(error);
