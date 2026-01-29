@@ -68,8 +68,7 @@ export const myOrders = async (req, res) => {
           payNumber: 1,
           email: 1,
           createdAt: 1,
-
-          // 🔹 dynamic title and price based on type
+          "product._id": 1,
           "product.title": {
             $cond: [
               { $eq: ["$productType", "course"] },

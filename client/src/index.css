@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
+
+.btn-blue {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-md flex items-center gap-2 hover:bg-blue-700;
+}
+
+.btn-green {
+  @apply px-4 py-2 bg-green-600 text-white rounded-md flex items-center gap-2 hover:bg-green-700;
+}
+
+.btn-indigo {
+  @apply px-4 py-2 bg-indigo-600 text-white rounded-md flex items-center gap-2 hover:bg-indigo-700;
+}
+
+.share-btn {
+  @apply p-3 text-white rounded-full hover:opacity-90;
+}

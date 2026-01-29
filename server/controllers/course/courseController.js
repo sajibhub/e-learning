@@ -42,7 +42,7 @@ export const createCourse = async (req, res) => {
                 })
             }
 
-            if (title.trim() === "" || details.trim() === "" ) {
+            if (title.trim() === "" || details.trim() === "") {
                 removeUploadedFile(req.file)
                 return res.status(400).json({
                     message: "Title, details, and link cannot be empty."
@@ -379,6 +379,7 @@ export const getCourseStructure = async (req, res) => {
         return res.status(200).json({
             message: "Course structure fetched successfully",
             totalModules: modules.length,
+            isSubscription: true,
             data: modules
         });
 
